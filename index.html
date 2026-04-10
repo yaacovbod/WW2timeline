@@ -204,6 +204,40 @@ header{
 .placed-card.seed{border-right-color:var(--gold)}
 .placed-badge.anchor{background:var(--gold);color:#000;font-size:.7rem}
 
+/* Drag hint (mobile only) */
+.drag-hint{
+  display:none;
+  align-items:center;justify-content:center;gap:6px;
+  padding:6px 0 10px;
+  font-size:.78rem;color:var(--text-muted);
+  animation:pulse-hint 1.8s ease-in-out infinite
+}
+@keyframes pulse-hint{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* ===== MOBILE ===== */
+@media(max-width:600px){
+  .logo h1{font-size:1.1rem}
+  .logo p{display:none}
+  .score-pill{font-size:.9rem;padding:5px 14px}
+  .game-wrap{padding:10px 8px 60px}
+  .card-img{height:130px}
+  .card-title{font-size:.95rem}
+  .card-desc{font-size:.8rem}
+  .timer-label{font-size:.72rem}
+  .placed-img{width:58px}
+  .placed-title{font-size:.82rem}
+  .placed-date{font-size:.68rem}
+  .placed-badge{left:5px;width:20px;height:20px;font-size:.72rem}
+  .modal{padding:22px 16px;border-radius:14px}
+  .modal h2{font-size:1.25rem}
+  .instr-list li{font-size:.85rem}
+  .final-score{font-size:3rem}
+  .btn{padding:11px 28px;font-size:.95rem}
+  .insert-line{height:5px;margin:1px 4px}
+  .drag-hint{display:flex}
+  .timeline::before{right:28px}
+}
+
 /* Touch ghost */
 #touch-ghost{
   position:fixed;pointer-events:none;z-index:999;
@@ -281,6 +315,7 @@ header{
       </div>
       <div class="timer-label" id="timerLabel">15 שניות</div>
     </div>
+    <div class="drag-hint">↕ גרור לציר הזמן</div>
   </div>
 
   <!-- Timeline -->
@@ -698,6 +733,10 @@ document.addEventListener('touchmove', e=>{
   ghost.style.left=(t.clientX-130)+'px';
   ghost.style.top =(t.clientY-80)+'px';
   showInsertLine(getInsertIndex(t.clientY));
+  // auto-scroll when near edges
+  const zone=90;
+  if(t.clientY > window.innerHeight - zone) window.scrollBy(0, 6);
+  else if(t.clientY < zone) window.scrollBy(0, -6);
 },{passive:false});
 
 document.addEventListener('touchend', e=>{
