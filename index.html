@@ -510,11 +510,30 @@ function shuffle(arr){
 }
 
 // ===== GAME FLOW =====
+const MUTUAL_EXCLUSIONS = [[26, 33]]; // אירועים שלא יופיעו יחד
+
+function pickEvents(){
+  const shuffled = shuffle(ALL_EVENTS);
+  const selected = shuffled.slice(0, 8);
+
+  MUTUAL_EXCLUSIONS.forEach(([idA, idB])=>{
+    const posA = selected.findIndex(e=>e.id===idA);
+    const posB = selected.findIndex(e=>e.id===idB);
+    if(posA === -1 || posB === -1) return; // לא שניהם בחרים
+    // מסיר את השני מהנבחרים ומחליף בתחליף מחוץ לבחירה
+    const removePos = Math.max(posA, posB);
+    const replacement = shuffled.find(e=>!selected.includes(e));
+    selected.splice(removePos, 1, replacement);
+  });
+
+  return selected;
+}
+
 function startGame(){
   document.getElementById('instrModal').classList.add('hidden');
-  const shuffled = shuffle(ALL_EVENTS);
-  const seed = {...shuffled[0], isSeed:true};
-  gameEvents = shuffled.slice(1, 8);
+  const selected = pickEvents();
+  const seed = {...selected[0], isSeed:true};
+  gameEvents = selected.slice(1, 8);
   placedEvents = [seed];
   currentIdx = 0;
   correctCount = 0;
