@@ -208,6 +208,8 @@ header{
 }
 .placed-badge.ok{background:var(--ok)}
 .placed-badge.bad{background:var(--bad);color:#fff}
+.placed-card.seed{border-right-color:var(--gold)}
+.placed-badge.anchor{background:var(--gold);color:#000;font-size:.7rem}
 
 /* Touch ghost */
 #touch-ghost{
@@ -238,10 +240,11 @@ header{
     <h2>איך משחקים?</h2>
     <p class="sub">השואה ומלחמת העולם השנייה</p>
     <ul class="instr-list">
-      <li>1. תוצג כרטיסייה עם תיאור אירוע היסטורי ללא תאריך.</li>
-      <li>2. גרור אותה למקום הנכון בציר הזמן – לפני, אחרי, או בין אירועים קיימים.</li>
-      <li>3. לכל כרטיסייה 15 שניות. בתום הזמן הכרטיסייה תמוקם אוטומטית.</li>
-      <li>4. בסיום תראה כמה הצלחת מתוך 7.</li>
+      <li>1. בציר הזמן יופיע אירוע עוגן ⚓ אחד עם תאריך – זה נקודת הפתיחה שלך.</li>
+      <li>2. תוצג כרטיסייה עם תיאור אירוע ללא תאריך.</li>
+      <li>3. גרור אותה למקום הנכון בציר הזמן – לפני, אחרי, או בין אירועים קיימים.</li>
+      <li>4. לכל כרטיסייה 15 שניות. בתום הזמן הכרטיסייה תמוקם אוטומטית.</li>
+      <li>5. בסיום תראה כמה הצלחת מתוך 7.</li>
     </ul>
     <button class="btn" onclick="startGame()">בואו נתחיל!</button>
   </div>
@@ -477,8 +480,10 @@ function shuffle(arr){
 // ===== GAME FLOW =====
 function startGame(){
   document.getElementById('instrModal').classList.add('hidden');
-  gameEvents = shuffle(ALL_EVENTS).slice(0,7);
-  placedEvents = [];
+  const shuffled = shuffle(ALL_EVENTS);
+  const seed = {...shuffled[0], isSeed:true};
+  gameEvents = shuffled.slice(1, 8);
+  placedEvents = [seed];
   currentIdx = 0;
   correctCount = 0;
   updateScorePill();
@@ -611,7 +616,11 @@ function createDropZone(idx){
 
 function createPlacedCard(ev){
   const card = document.createElement('div');
-  card.className='placed-card '+(ev.isCorrect?'correct':'incorrect');
+  if(ev.isSeed){
+    card.className='placed-card seed';
+  } else {
+    card.className='placed-card '+(ev.isCorrect?'correct':'incorrect');
+  }
 
   const img = document.createElement('img');
   img.className='placed-img';
@@ -634,8 +643,13 @@ function createPlacedCard(ev){
   body.appendChild(title);
 
   const badge=document.createElement('div');
-  badge.className='placed-badge '+(ev.isCorrect?'ok':'bad');
-  badge.textContent=ev.isCorrect?'✓':'✗';
+  if(ev.isSeed){
+    badge.className='placed-badge anchor';
+    badge.textContent='⚓';
+  } else {
+    badge.className='placed-badge '+(ev.isCorrect?'ok':'bad');
+    badge.textContent=ev.isCorrect?'✓':'✗';
+  }
 
   card.appendChild(img);
   card.appendChild(body);
