@@ -289,7 +289,7 @@ header{
       <li>1. בציר הזמן יופיע אירוע עוגן ⚓ אחד עם תאריך – זה נקודת הפתיחה שלך.</li>
       <li>2. תוצג כרטיסייה עם תיאור אירוע ללא תאריך.</li>
       <li>3. גרור אותה לציר הזמן ו"דחוף" אותה למקום הנכון – לפני, אחרי, או בין אירועים קיימים.</li>
-      <li>4. לכל כרטיסייה 15 שניות. בתום הזמן הכרטיסייה תמוקם אוטומטית.</li>
+      <li>4. לכל כרטיסייה 30 שניות. בתום הזמן הכרטיסייה תמוקם אוטומטית.</li>
       <li>5. בסיום תראה כמה הצלחת מתוך 7.</li>
     </ul>
     <button class="btn" onclick="startGame()">בואו נתחיל!</button>
@@ -512,7 +512,7 @@ let placedEvents = [];
 let currentIdx = 0;
 let correctCount = 0;
 let timerInterval = null;
-let timeLeft = 15;
+let timeLeft = 30;
 
 // ===== HELPERS =====
 function shuffle(arr){
@@ -568,7 +568,7 @@ function showCurrentCard(){
 }
 
 function startTimer(){
-  timeLeft = 15;
+  timeLeft = 30;
   updateTimerUI();
   timerInterval = setInterval(()=>{
     timeLeft--;
@@ -578,10 +578,10 @@ function startTimer(){
 }
 
 function updateTimerUI(){
-  const pct = (timeLeft/15)*100;
+  const pct = (timeLeft/30)*100;
   const fill = document.getElementById('timerFill');
   fill.style.width = pct+'%';
-  fill.style.background = timeLeft>8?'#2a6dd9':timeLeft>4?'#e67e00':'#c62828';
+  fill.style.background = timeLeft>15?'#2a6dd9':timeLeft>8?'#e67e00':'#c62828';
   document.getElementById('timerLabel').textContent = timeLeft+' שניות';
 }
 
