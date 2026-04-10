@@ -26,7 +26,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:'Raleway',sans-serif;
-  background: var(--bg)
+  background-color:var(--bg);
+  background-image:
     radial-gradient(ellipse at 20% 10%, rgba(107,79,219,.18) 0%, transparent 55%),
     radial-gradient(ellipse at 80% 80%, rgba(0,191,255,.12) 0%, transparent 55%);
   background-attachment:fixed;
@@ -34,6 +35,20 @@ body{
   min-height:100vh;
   direction:rtl;
   user-select:none
+}
+
+/* ===== FLOATING ELEMENTS ===== */
+#float-layer{
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:0;
+  overflow:hidden
+}
+@keyframes floatUp{
+  0%  {transform:translateY(0) rotate(0deg);  opacity:0}
+  8%  {opacity:1}
+  92% {opacity:1}
+  100%{transform:translateY(-110vh) rotate(8deg); opacity:0}
 }
 
 /* ===== HEADER ===== */
@@ -45,6 +60,7 @@ header{
   border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:50
 }
+.game-wrap{position:relative;z-index:1}
 .logo h1{
   font-family:'Cinzel',serif;
   font-size:1.3rem;font-weight:800;
@@ -254,6 +270,9 @@ header{
 </style>
 </head>
 <body>
+
+<!-- Floating background layer -->
+<div id="float-layer"></div>
 
 <!-- Touch ghost for mobile drag -->
 <div id="touch-ghost">
@@ -748,6 +767,67 @@ document.addEventListener('touchend', e=>{
   const t=e.changedTouches[0];
   placeCard(getInsertIndex(t.clientY));
 });
+
+// ===== FLOATING BACKGROUND ELEMENTS =====
+(function(){
+  const layer = document.getElementById('float-layer');
+
+  const SYMBOLS = [
+    { t:'✡',  size:1.4, op:.13 },
+    { t:'🕯️', size:1.3, op:.18 },
+    { t:'🕊️', size:1.3, op:.16 },
+    { t:'🌹', size:1.2, op:.15 },
+    { t:'✡',  size:1.6, op:.10 },
+    { t:'🕯️', size:1.1, op:.17 },
+    { t:'🕊️', size:1.5, op:.13 },
+    { t:'✡',  size:1.2, op:.12 },
+    { t:'🌹', size:1.4, op:.14 },
+    { t:'🕯️', size:1.6, op:.11 },
+    { t:'🕊️', size:1.2, op:.15 },
+    { t:'✡',  size:1.3, op:.10 },
+  ];
+
+  const TEXT_ITEMS = [
+    { t:'זכור', color:'#c0a0ff', size:.85 },
+    { t:'1933', color:'#8888cc', size:.78 },
+    { t:'1939', color:'#8888cc', size:.78 },
+    { t:'1945', color:'#8888cc', size:.78 },
+    { t:'שואה', color:'#c0a0ff', size:.82 },
+    { t:'1942', color:'#8888cc', size:.78 },
+    { t:'זכור', color:'#c0a0ff', size:.75 },
+    { t:'1944', color:'#8888cc', size:.72 },
+  ];
+
+  const all = [
+    ...SYMBOLS.map((s,i)=>({ kind:'sym', ...s, left: 2 + i*(96/SYMBOLS.length) + (Math.random()*4-2) })),
+    ...TEXT_ITEMS.map((s,i)=>({ kind:'txt', ...s, left: 5 + i*(90/TEXT_ITEMS.length) + (Math.random()*4-2) })),
+  ];
+
+  all.forEach(item=>{
+    const el = document.createElement('span');
+    const dur = 18 + Math.random()*20;
+    const delay = -(Math.random()*dur);
+    if(item.kind==='sym'){
+      el.textContent = item.t;
+      el.style.cssText = `
+        position:absolute;bottom:-60px;left:${item.left.toFixed(1)}%;
+        font-size:${item.size}rem;opacity:${item.op};
+        animation:floatUp ${dur.toFixed(1)}s ${delay.toFixed(1)}s linear infinite;
+        pointer-events:none;user-select:none;filter:saturate(.4) brightness(.7)
+      `;
+    } else {
+      el.textContent = item.t;
+      el.style.cssText = `
+        position:absolute;bottom:-60px;left:${item.left.toFixed(1)}%;
+        font-family:'Cinzel',serif;font-size:${item.size}rem;
+        color:${item.color};opacity:.18;
+        animation:floatUp ${dur.toFixed(1)}s ${delay.toFixed(1)}s linear infinite;
+        pointer-events:none;user-select:none;letter-spacing:2px
+      `;
+    }
+    layer.appendChild(el);
+  });
+})();
 </script>
 </body>
 </html>
