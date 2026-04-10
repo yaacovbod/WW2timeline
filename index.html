@@ -158,25 +158,18 @@ header{
   transform:translateX(50%)
 }
 
-/* Drop zone */
-.drop-zone{
-  display:flex;align-items:center;justify-content:center;
-  padding:6px 0;position:relative;z-index:10
+/* Insert line */
+.insert-line{
+  height:3px;
+  margin:2px 8px;
+  border-radius:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent);
+  box-shadow:0 0 10px var(--accent);
+  opacity:0;
+  transition:opacity .15s;
+  pointer-events:none
 }
-.dz-inner{
-  width:82%;
-  border:2px dashed var(--border);
-  border-radius:10px;height:44px;
-  display:flex;align-items:center;justify-content:center;
-  color:var(--text-muted);font-size:.8rem;
-  transition:all .2s;background:transparent
-}
-.dz-inner.over{
-  background:rgba(107,79,219,.2);
-  border-color:var(--accent);
-  color:var(--text);
-  box-shadow:0 0 12px rgba(107,79,219,.3)
-}
+.insert-line.active{opacity:1}
 
 /* Placed card on timeline */
 .placed-card{
@@ -185,7 +178,7 @@ header{
   border:1px solid var(--border);
   border-radius:10px;overflow:hidden;
   box-shadow:0 2px 12px rgba(0,0,0,.4);
-  margin:0 8px;
+  margin:2px 8px;
   display:flex;align-items:stretch;
   border-right:5px solid transparent;
   position:relative;z-index:5
@@ -242,7 +235,7 @@ header{
     <ul class="instr-list">
       <li>1. בציר הזמן יופיע אירוע עוגן ⚓ אחד עם תאריך – זה נקודת הפתיחה שלך.</li>
       <li>2. תוצג כרטיסייה עם תיאור אירוע ללא תאריך.</li>
-      <li>3. גרור אותה למקום הנכון בציר הזמן – לפני, אחרי, או בין אירועים קיימים.</li>
+      <li>3. גרור אותה לציר הזמן ו"דחוף" אותה למקום הנכון – לפני, אחרי, או בין אירועים קיימים.</li>
       <li>4. לכל כרטיסייה 15 שניות. בתום הזמן הכרטיסייה תמוקם אוטומטית.</li>
       <li>5. בסיום תראה כמה הצלחת מתוך 7.</li>
     </ul>
@@ -585,7 +578,10 @@ function renderTimeline(){
 
   for(let i=0;i<=placedEvents.length;i++){
     if(gameRunning){
-      tl.appendChild(createDropZone(i));
+      const line = document.createElement('div');
+      line.className='insert-line';
+      line.dataset.idx=i;
+      tl.appendChild(line);
     }
     if(i<placedEvents.length){
       tl.appendChild(createPlacedCard(placedEvents[i]));
@@ -593,25 +589,23 @@ function renderTimeline(){
   }
 }
 
-function createDropZone(idx){
-  const wrap = document.createElement('div');
-  wrap.className='drop-zone';
-  const inner = document.createElement('div');
-  inner.className='dz-inner';
-  inner.textContent = idx===0? '← הנח כאן (ראשון בציר)' : idx===placedEvents.length? '← הנח כאן (אחרון בציר)' : '← הנח כאן';
+function getInsertIndex(clientY){
+  const cards=[...document.querySelectorAll('#timeline .placed-card')];
+  for(let i=0;i<cards.length;i++){
+    const r=cards[i].getBoundingClientRect();
+    if(clientY < r.top + r.height/2) return i;
+  }
+  return cards.length;
+}
 
-  inner.addEventListener('dragover', e=>{ e.preventDefault(); inner.classList.add('over'); });
-  inner.addEventListener('dragleave', ()=>inner.classList.remove('over'));
-  inner.addEventListener('drop', e=>{
-    e.preventDefault();
-    inner.classList.remove('over');
-    placeCard(idx);
+function showInsertLine(idx){
+  document.querySelectorAll('.insert-line').forEach(l=>{
+    l.classList.toggle('active', parseInt(l.dataset.idx)===idx);
   });
+}
 
-  // Touch target
-  inner._dropIdx = idx;
-  wrap.appendChild(inner);
-  return wrap;
+function hideInsertLines(){
+  document.querySelectorAll('.insert-line').forEach(l=>l.classList.remove('active'));
 }
 
 function createPlacedCard(ev){
@@ -659,12 +653,28 @@ function createPlacedCard(ev){
 
 // ===== DRAG (desktop) =====
 const currentCard = document.getElementById('currentCard');
+const timeline    = document.getElementById('timeline');
+
 currentCard.addEventListener('dragstart', e=>{
   currentCard.classList.add('dragging');
   e.dataTransfer.effectAllowed='move';
 });
 currentCard.addEventListener('dragend', ()=>{
   currentCard.classList.remove('dragging');
+  hideInsertLines();
+});
+
+timeline.addEventListener('dragover', e=>{
+  e.preventDefault();
+  showInsertLine(getInsertIndex(e.clientY));
+});
+timeline.addEventListener('dragleave', e=>{
+  if(!timeline.contains(e.relatedTarget)) hideInsertLines();
+});
+timeline.addEventListener('drop', e=>{
+  e.preventDefault();
+  hideInsertLines();
+  placeCard(getInsertIndex(e.clientY));
 });
 
 // ===== TOUCH DRAG (mobile) =====
@@ -687,13 +697,7 @@ document.addEventListener('touchmove', e=>{
   const t=e.touches[0];
   ghost.style.left=(t.clientX-130)+'px';
   ghost.style.top =(t.clientY-80)+'px';
-
-  // highlight drop zones
-  document.querySelectorAll('.dz-inner').forEach(dz=>{
-    const r=dz.getBoundingClientRect();
-    const over=t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom;
-    dz.classList.toggle('over',over);
-  });
+  showInsertLine(getInsertIndex(t.clientY));
 },{passive:false});
 
 document.addEventListener('touchend', e=>{
@@ -701,22 +705,9 @@ document.addEventListener('touchend', e=>{
   touchDragging=false;
   ghost.style.display='none';
   currentCard.classList.remove('dragging');
-
+  hideInsertLines();
   const t=e.changedTouches[0];
-  let hit=null;
-  document.querySelectorAll('.dz-inner').forEach(dz=>{
-    dz.classList.remove('over');
-    const r=dz.getBoundingClientRect();
-    if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
-      hit=dz;
-    }
-  });
-  if(hit){
-    const wrap=hit.parentElement;
-    const allZones=[...document.querySelectorAll('.drop-zone')];
-    const idx=allZones.indexOf(wrap);
-    if(idx!==-1) placeCard(idx);
-  }
+  placeCard(getInsertIndex(t.clientY));
 });
 </script>
 </body>
