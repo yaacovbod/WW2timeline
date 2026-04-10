@@ -72,7 +72,8 @@ header{
 }
 .current-card.dragging{opacity:.45;transform:scale(.97)}
 .current-card.hidden{display:none}
-.card-img{width:100%;height:170px;object-fit:cover;display:block;background:#dde}
+.card-img{width:100%;height:170px;object-fit:cover;display:block;background:#dde;pointer-events:none}
+.card-body{pointer-events:none}
 .card-img-err{
   width:100%;height:170px;
   background:linear-gradient(135deg,#1d3568,#2a4580);
@@ -216,7 +217,7 @@ header{
 <div class="game-wrap">
 
   <!-- Current card to place -->
-  <div class="current-card hidden" id="currentCard">
+  <div class="current-card hidden" id="currentCard" draggable="true">
     <img class="card-img" id="cardImg" src="" alt=""
          onerror="this.style.display='none';document.getElementById('cardImgErr').style.display='flex'">
     <div class="card-img-err" id="cardImgErr" style="display:none">📷</div>
