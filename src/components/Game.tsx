@@ -271,7 +271,7 @@ export default function Game() {
 
   useEffect(() => {
     if (phase !== 'playing') return
-    timerRef.current = setInterval(() => setStopwatchMs(ms => ms + 100), 100)
+    timerRef.current = setInterval(() => setStopwatchMs(ms => ms + 10), 10)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [phase])
 

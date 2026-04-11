@@ -79,6 +79,6 @@ export function pickEvents(): GameEvent[] {
 export function formatTime(ms: number): string {
   const m = String(Math.floor(ms / 60000)).padStart(2, '0')
   const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')
-  const t = String(Math.floor((ms % 1000) / 100))
+  const t = String(Math.floor((ms % 1000) / 10)).padStart(2, '0')
   return `${m}:${s}.${t}`
 }
