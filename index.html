@@ -557,6 +557,7 @@ function pickEvents(){
 }
 
 function startGame(){
+  startMusic();
   document.getElementById('instrModal').classList.add('hidden');
   const selected = pickEvents();
   const seed = {...selected[0], isSeed:true};
@@ -803,13 +804,13 @@ document.addEventListener('touchend', e=>{
 const bgMusic = document.getElementById('bgMusic');
 bgMusic.volume = 0.18;
 
+let musicStarted = false;
 function startMusic(){
-  bgMusic.play().catch(()=>{});
-  document.removeEventListener('click', startMusic);
-  document.removeEventListener('touchstart', startMusic);
+  if(musicStarted) return;
+  bgMusic.play().then(()=>{ musicStarted=true; }).catch(()=>{});
 }
-document.addEventListener('click', startMusic);
-document.addEventListener('touchstart', startMusic);
+document.addEventListener('click',    startMusic, {once:true});
+document.addEventListener('touchend', startMusic, {once:true});
 
 function toggleMute(){
   const btn = document.getElementById('muteBtn');
