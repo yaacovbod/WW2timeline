@@ -513,7 +513,7 @@ let gameEvents   = [];
 let placedEvents = [];
 let currentIdx   = 0;
 let strikes      = 0;
-let stopwatchSec = 0;
+let stopwatchMs = 0;
 let stopwatchInterval = null;
 
 const MAX_STRIKES = 3;
@@ -565,12 +565,12 @@ function startGame(){
   placedEvents = [seed];
   currentIdx   = 0;
   strikes      = 0;
-  stopwatchSec = 0;
+  stopwatchMs  = 0;
   clearInterval(stopwatchInterval);
   stopwatchInterval = setInterval(()=>{
-    stopwatchSec++;
+    stopwatchMs += 100;
     updateStopwatch();
-  }, 1000);
+  }, 100);
   updateStopwatch();
   updateHUD();
   renderTimeline();
@@ -582,10 +582,15 @@ function restartGame(){
   startGame();
 }
 
+function formatTime(ms){
+  const m  = String(Math.floor(ms/60000)).padStart(2,'0');
+  const s  = String(Math.floor((ms%60000)/1000)).padStart(2,'0');
+  const t  = String(Math.floor((ms%1000)/100));
+  return m+':'+s+'.'+t;
+}
+
 function updateStopwatch(){
-  const m = String(Math.floor(stopwatchSec/60)).padStart(2,'0');
-  const s = String(stopwatchSec%60).padStart(2,'0');
-  document.getElementById('stopwatch').textContent = m+':'+s;
+  document.getElementById('stopwatch').textContent = formatTime(stopwatchMs);
 }
 
 function updateHUD(){
@@ -657,18 +662,17 @@ function endGame(won){
   document.getElementById('currentCard').classList.add('hidden');
   renderTimeline();
 
-  const m = String(Math.floor(stopwatchSec/60)).padStart(2,'0');
-  const s = String(stopwatchSec%60).padStart(2,'0');
+  const timeStr = formatTime(stopwatchMs);
 
   if(won){
     document.getElementById('endTitle').textContent   = 'כל הכבוד!';
     document.getElementById('endSub').textContent     = 'סידרת את כל האירועים בזמן:';
-    document.getElementById('finalScore').textContent = m+':'+s;
+    document.getElementById('finalScore').textContent = timeStr;
     document.getElementById('scoreMsg').textContent   = strikes===0 ? 'מושלם! ללא אף פסילה!' : `עם ${strikes} פסיל${strikes===1?'ה':'ות'} בלבד.`;
   } else {
     document.getElementById('endTitle').textContent   = 'נגמרו הסיבובים!';
     document.getElementById('endSub').textContent     = '3 פסילות – המשחק הסתיים.';
-    document.getElementById('finalScore').textContent = m+':'+s;
+    document.getElementById('finalScore').textContent = timeStr;
     document.getElementById('scoreMsg').textContent   = 'כדאי לחזור על החומר ולנסות שוב.';
   }
   document.getElementById('endModal').classList.remove('hidden');
