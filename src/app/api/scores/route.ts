@@ -42,7 +42,9 @@ async function writeScores(scores: ScoreEntry[]) {
 
 export async function GET() {
   const scores = await readScores()
-  return NextResponse.json(scores.slice(0, TOP_N))
+  return NextResponse.json(scores.slice(0, TOP_N), {
+    headers: { 'Cache-Control': 'no-store' },
+  })
 }
 
 export async function POST(req: Request) {

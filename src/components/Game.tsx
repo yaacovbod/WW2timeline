@@ -111,7 +111,7 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/scores')
+    fetch('/api/scores', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => { setRows(data); setLoading(false) })
       .catch(() => setLoading(false))
