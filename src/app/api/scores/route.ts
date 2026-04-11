@@ -16,7 +16,7 @@ async function readScores(): Promise<ScoreEntry[]> {
   try {
     const { blobs } = await list({ prefix: 'scores/' })
     if (blobs.length === 0) return []
-    const res = await fetch(blobs[0].url, { cache: 'no-store' })
+    const res = await fetch(blobs[0].downloadUrl, { cache: 'no-store' })
     return await res.json()
   } catch {
     return []
@@ -25,7 +25,7 @@ async function readScores(): Promise<ScoreEntry[]> {
 
 async function writeScores(scores: ScoreEntry[]) {
   await put(BLOB_KEY, JSON.stringify(scores), {
-    access: 'public',
+    access: 'private',
     addRandomSuffix: false,
     contentType: 'application/json',
   })
