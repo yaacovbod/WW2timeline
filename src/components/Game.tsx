@@ -787,6 +787,10 @@ export default function Game() {
       <footer style={{ textAlign: 'center', padding: '10px 18px 18px', fontSize: '.72rem', color: '#4a4870', fontFamily: 'var(--font-raleway)', position: 'relative', zIndex: 1 }}>
         כל הזכויות שמורות © יעקב קדם &nbsp;|&nbsp;
         <a href="mailto:yaacovbod@gmail.com" style={{ color: 'var(--accent)', textDecoration: 'none' }}>yaacovbod@gmail.com</a>
+        <br />
+        <button onClick={() => setShowTerms(true)} style={{ marginTop: 6, background: 'none', border: 'none', padding: 0, color: '#4a4870', cursor: 'pointer', fontSize: '.72rem', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+          תנאי שימוש
+        </button>
       </footer>
     </>
   )
