@@ -229,7 +229,7 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
             )}
             {schoolQuery.trim().length >= 1 && schoolRows.length === 0 && (
               <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '.85rem', padding: '10px 0' }}>
-                לא נמצאו תוצאות עבור &quot;{schoolQuery}&quot;
+                אין נתונים לבית ספר הנבחר
               </p>
             )}
             {schoolRows.length > 0 && (
@@ -237,7 +237,7 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
                 <p style={{ textAlign: 'right', color: 'var(--text-muted)', fontSize: '.8rem', marginBottom: 8, direction: 'rtl' }}>
                   מציג {schoolRows.length} תוצאות עבור &quot;{schoolQuery}&quot;
                 </p>
-                <ScoreTable rows={schoolRows} showSchool={false} />
+                <ScoreTable rows={schoolRows} showSchool={true} />
               </>
             )}
           </>
