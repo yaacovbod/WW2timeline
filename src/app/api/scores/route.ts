@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+import { put, list } from '@vercel/blob'
 
 export interface ScoreEntry {
   name: string
@@ -10,29 +9,30 @@ export interface ScoreEntry {
   date: string
 }
 
-const SCORES_FILE = path.join(process.cwd(), 'scores.json')
+const BLOB_KEY = 'scores/data.json'
 const TOP_N = 100
 
-function readScores(): ScoreEntry[] {
+async function readScores(): Promise<ScoreEntry[]> {
   try {
-    if (!fs.existsSync(SCORES_FILE)) return []
-    return JSON.parse(fs.readFileSync(SCORES_FILE, 'utf-8'))
+    const { blobs } = await list({ prefix: 'scores/' })
+    if (blobs.length === 0) return []
+    const res = await fetch(blobs[0].url, { cache: 'no-store' })
+    return await res.json()
   } catch {
     return []
   }
 }
 
-function writeScores(scores: ScoreEntry[]) {
-  try {
-    fs.writeFileSync(SCORES_FILE, JSON.stringify(scores, null, 2), 'utf-8')
-  } catch (e) {
-    console.error('[scores] write failed:', SCORES_FILE, e)
-    throw e
-  }
+async function writeScores(scores: ScoreEntry[]) {
+  await put(BLOB_KEY, JSON.stringify(scores), {
+    access: 'public',
+    addRandomSuffix: false,
+    contentType: 'application/json',
+  })
 }
 
 export async function GET() {
-  const scores = readScores()
+  const scores = await readScores()
   return NextResponse.json(scores.slice(0, TOP_N))
 }
 
@@ -51,16 +51,17 @@ export async function POST(req: Request) {
       date: new Date().toISOString().slice(0, 10),
     }
 
-    const scores = readScores()
+    const scores = await readScores()
     scores.push(entry)
     scores.sort((a, b) => a.timeMs - b.timeMs || a.strikes - b.strikes)
     const trimmed = scores.slice(0, TOP_N)
-    writeScores(trimmed)
+    await writeScores(trimmed)
 
     const rank = trimmed.findIndex(
-      s => s.name === entry.name && s.school === entry.school && s.timeMs === entry.timeMs && s.date === entry.date
+      s => s.name === entry.name && s.school === entry.school &&
+           s.timeMs === entry.timeMs && s.date === entry.date
     ) + 1
-    return NextResponse.json({ rank, leaderboard: trimmed })
+    return NextResponse.json({ rank })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     console.error('[scores POST]', msg)
