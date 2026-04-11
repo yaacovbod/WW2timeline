@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
+import { put, list, get } from '@vercel/blob'
 
 export interface ScoreEntry {
   name: string
@@ -16,9 +16,17 @@ async function readScores(): Promise<ScoreEntry[]> {
   try {
     const { blobs } = await list({ prefix: 'scores/' })
     if (blobs.length === 0) return []
-    const res = await fetch(blobs[0].url, { cache: 'no-store' })
-    if (!res.ok) return []
-    return await res.json()
+    const result = await get(blobs[0].url, { access: 'private' })
+    if (!result?.stream) return []
+    const reader = result.stream.getReader()
+    const chunks: Uint8Array[] = []
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      if (value) chunks.push(value)
+    }
+    const text = Buffer.concat(chunks).toString('utf-8')
+    return JSON.parse(text)
   } catch {
     return []
   }
