@@ -688,27 +688,16 @@ export default function Game() {
       )}
 
       {/* Header */}
-      <header style={{ background: 'rgba(8,8,26,.92)', backdropFilter: 'blur(8px)', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={() => setShowLeaderboard(true)}
-            title="לוח תוצאות"
-            style={{
-              background: 'rgba(255,200,50,.12)', border: '1px solid rgba(255,200,50,.3)',
-              color: 'var(--gold)', borderRadius: 8, padding: '5px 11px',
-              fontSize: '.8rem', cursor: 'pointer', whiteSpace: 'nowrap',
-            }}
-          >
-            🏆 דירוג
-          </button>
+      <header style={{ background: 'rgba(8,8,26,.92)', backdropFilter: 'blur(8px)', padding: '10px 20px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-start' }}>
+          <div ref={timerDisplayRef} style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', fontVariantNumeric: 'tabular-nums' }}>00:00.00</div>
         </div>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.3rem', fontWeight: 800, background: 'linear-gradient(90deg,var(--text),var(--gold))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', textAlign: 'center' }}>אירוע בזמן</h1>
-          <p style={{ fontSize: '.68rem', color: 'var(--text-muted)', marginTop: 2, letterSpacing: '.5px', textAlign: 'center' }}>השואה ומלחמת העולם השנייה</p>
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.3rem', fontWeight: 800, background: 'linear-gradient(90deg,var(--text),var(--gold))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>אירוע בזמן</h1>
+          <p style={{ fontSize: '.68rem', color: 'var(--text-muted)', marginTop: 2, letterSpacing: '.5px' }}>השואה ומלחמת העולם השנייה</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ fontSize: '1.2rem', letterSpacing: 2, minWidth: 60, textAlign: 'center' }}>{hearts}</div>
-          <div ref={timerDisplayRef} style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', width: 80, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>00:00.00</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <div style={{ fontSize: '1.2rem', letterSpacing: 2, textAlign: 'center' }}>{hearts}</div>
         </div>
       </header>
 
@@ -782,7 +771,20 @@ export default function Game() {
         </div>
       </div>
 
-      <footer style={{ textAlign: 'center', padding: 18, fontSize: '.72rem', color: '#4a4870', fontFamily: 'var(--font-raleway)', position: 'relative', zIndex: 1 }}>
+      <div style={{ textAlign: 'center', padding: '12px 0 4px', position: 'relative', zIndex: 1 }}>
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          style={{
+            background: 'rgba(255,200,50,.12)', border: '1px solid rgba(255,200,50,.3)',
+            color: 'var(--gold)', borderRadius: 8, padding: '7px 18px',
+            fontSize: '.85rem', cursor: 'pointer', whiteSpace: 'nowrap',
+          }}
+        >
+          🏆 דירוג
+        </button>
+      </div>
+
+      <footer style={{ textAlign: 'center', padding: '10px 18px 18px', fontSize: '.72rem', color: '#4a4870', fontFamily: 'var(--font-raleway)', position: 'relative', zIndex: 1 }}>
         כל הזכויות שמורות © יעקב קדם &nbsp;|&nbsp;
         <a href="mailto:yaacovbod@gmail.com" style={{ color: 'var(--accent)', textDecoration: 'none' }}>yaacovbod@gmail.com</a>
       </footer>
