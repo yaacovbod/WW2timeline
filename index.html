@@ -78,13 +78,13 @@ header{
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
 }
 .logo p{font-size:.68rem;color:var(--text-muted);margin-top:2px;letter-spacing:.5px}
-.score-pill{
-  background:var(--surface2);
-  border:1px solid var(--accent);
-  padding:6px 18px;border-radius:20px;
-  font-size:1rem;font-weight:700;
-  color:var(--gold)
+.hud{display:flex;align-items:center;gap:12px}
+.stopwatch{
+  font-family:'Cinzel',serif;
+  font-size:1.1rem;font-weight:700;
+  color:var(--gold);min-width:58px;text-align:center
 }
+.strikes{font-size:1.2rem;letter-spacing:2px}
 
 /* ===== MODAL ===== */
 .overlay{
@@ -164,15 +164,15 @@ header{
 }
 .card-desc{font-size:.82rem;color:var(--text-muted);line-height:1.5}
 
-/* Timer */
-.timer-wrap{padding:8px 16px 12px;direction:ltr}
-.timer-bar-bg{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
-.timer-bar-fill{
-  height:100%;width:100%;border-radius:3px;
-  transition:width 1s linear,background .5s;
-  background:var(--accent)
+/* Strike feedback */
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.current-card.shake{animation:shake .4s ease}
+.strike-flash{
+  position:absolute;inset:0;background:rgba(255,82,82,.18);
+  border-radius:14px;pointer-events:none;
+  animation:fadeFlash .5s ease forwards
 }
-.timer-label{text-align:center;font-size:.75rem;color:var(--text-muted);margin-top:4px}
+@keyframes fadeFlash{0%{opacity:1}100%{opacity:0}}
 
 /* ===== TIMELINE ===== */
 .timeline{position:relative;margin-top:12px;padding:0 8px}
@@ -243,7 +243,8 @@ header{
 @media(max-width:600px){
   .logo h1{font-size:1.1rem}
   .logo p{display:none}
-  .score-pill{font-size:.9rem;padding:5px 14px}
+  .stopwatch{font-size:.95rem}
+  .strikes{font-size:1rem}
   .game-wrap{padding:10px 8px 60px}
   .card-img{height:130px}
   .card-title{font-size:.95rem}
@@ -307,9 +308,9 @@ header{
     <ul class="instr-list">
       <li>1. בציר הזמן יופיע אירוע עוגן ⚓ אחד עם תאריך – זה נקודת הפתיחה שלך.</li>
       <li>2. תוצג כרטיסייה עם תיאור אירוע ללא תאריך.</li>
-      <li>3. גרור אותה לציר הזמן ו"דחוף" אותה למקום הנכון – לפני, אחרי, או בין אירועים קיימים.</li>
-      <li>4. לכל כרטיסייה 30 שניות. בתום הזמן הכרטיסייה תמוקם אוטומטית.</li>
-      <li>5. בסיום תראה כמה הצלחת מתוך 7.</li>
+      <li>3. גרור אותה לציר הזמן ו"דחוף" אותה למקום הנכון.</li>
+      <li>4. טעות = פסילה ♥. לאחר 3 פסילות המשחק נגמר בהפסד.</li>
+      <li>5. הצלחת בפחות מ-3 פסילות? תראה את הזמן שלקח לך!</li>
     </ul>
     <button class="btn" onclick="startGame()">בואו נתחיל!</button>
   </div>
@@ -318,9 +319,9 @@ header{
 <!-- End game modal -->
 <div class="overlay hidden" id="endModal">
   <div class="modal">
-    <h2>סיום המשחק!</h2>
-    <p class="sub">הצלחת לסדר נכון:</p>
-    <div class="final-score" id="finalScore">0/7</div>
+    <h2 id="endTitle">סיום המשחק!</h2>
+    <p class="sub" id="endSub"></p>
+    <div class="final-score" id="finalScore"></div>
     <p class="score-msg" id="scoreMsg"></p>
     <button class="btn" onclick="restartGame()">משחק חדש</button>
   </div>
@@ -332,7 +333,10 @@ header{
     <h1>אירוע בזמן</h1>
     <p>השואה ומלחמת העולם השנייה</p>
   </div>
-  <div class="score-pill" id="scorePill">0/0</div>
+  <div class="hud">
+    <div class="strikes" id="strikesDisplay">♥♥♥</div>
+    <div class="stopwatch" id="stopwatch">00:00</div>
+  </div>
 </header>
 
 <!-- Game -->
@@ -346,12 +350,6 @@ header{
     <div class="card-body">
       <div class="card-title" id="cardTitle"></div>
       <div class="card-desc" id="cardDesc"></div>
-    </div>
-    <div class="timer-wrap">
-      <div class="timer-bar-bg">
-        <div class="timer-bar-fill" id="timerFill"></div>
-      </div>
-      <div class="timer-label" id="timerLabel">15 שניות</div>
     </div>
     <div class="drag-hint">↕ גרור לציר הזמן</div>
   </div>
@@ -511,12 +509,14 @@ const ALL_EVENTS = [
 ];
 
 // ===== STATE =====
-let gameEvents = [];
+let gameEvents   = [];
 let placedEvents = [];
-let currentIdx = 0;
-let correctCount = 0;
-let timerInterval = null;
-let timeLeft = 30;
+let currentIdx   = 0;
+let strikes      = 0;
+let stopwatchSec = 0;
+let stopwatchInterval = null;
+
+const MAX_STRIKES = 3;
 
 // ===== HELPERS =====
 function shuffle(arr){
@@ -561,11 +561,18 @@ function startGame(){
   document.getElementById('instrModal').classList.add('hidden');
   const selected = pickEvents();
   const seed = {...selected[0], isSeed:true};
-  gameEvents = selected.slice(1, 8);
+  gameEvents   = selected.slice(1, 8);
   placedEvents = [seed];
-  currentIdx = 0;
-  correctCount = 0;
-  updateScorePill();
+  currentIdx   = 0;
+  strikes      = 0;
+  stopwatchSec = 0;
+  clearInterval(stopwatchInterval);
+  stopwatchInterval = setInterval(()=>{
+    stopwatchSec++;
+    updateStopwatch();
+  }, 1000);
+  updateStopwatch();
+  updateHUD();
   renderTimeline();
   showCurrentCard();
 }
@@ -575,11 +582,21 @@ function restartGame(){
   startGame();
 }
 
-function showCurrentCard(){
-  clearInterval(timerInterval);
-  if(currentIdx >= gameEvents.length){ endGame(); return; }
+function updateStopwatch(){
+  const m = String(Math.floor(stopwatchSec/60)).padStart(2,'0');
+  const s = String(stopwatchSec%60).padStart(2,'0');
+  document.getElementById('stopwatch').textContent = m+':'+s;
+}
 
-  const ev = gameEvents[currentIdx];
+function updateHUD(){
+  const hearts = '♥'.repeat(MAX_STRIKES - strikes) + '♡'.repeat(strikes);
+  document.getElementById('strikesDisplay').textContent = hearts;
+}
+
+function showCurrentCard(){
+  if(currentIdx >= gameEvents.length){ endGame(true); return; }
+
+  const ev   = gameEvents[currentIdx];
   const card = document.getElementById('currentCard');
   const img  = document.getElementById('cardImg');
   const err  = document.getElementById('cardImgErr');
@@ -589,70 +606,71 @@ function showCurrentCard(){
   img.src = ev.image;
   document.getElementById('cardTitle').textContent = ev.title;
   document.getElementById('cardDesc').textContent  = ev.description;
-  card.classList.remove('hidden','dragging');
+  card.classList.remove('hidden','dragging','shake');
 
-  // Also update touch ghost
-  document.getElementById('tg-img').src   = ev.image;
+  document.getElementById('tg-img').src = ev.image;
   document.getElementById('tg-title').textContent = ev.title;
 
-  startTimer();
   renderTimeline();
 }
 
-function startTimer(){
-  timeLeft = 30;
-  updateTimerUI();
-  timerInterval = setInterval(()=>{
-    timeLeft--;
-    updateTimerUI();
-    if(timeLeft<=0){ clearInterval(timerInterval); placeCard(null); }
-  },1000);
-}
-
-function updateTimerUI(){
-  const pct = (timeLeft/30)*100;
-  const fill = document.getElementById('timerFill');
-  fill.style.width = pct+'%';
-  fill.style.background = timeLeft>15?'#2a6dd9':timeLeft>8?'#e67e00':'#c62828';
-  document.getElementById('timerLabel').textContent = timeLeft+' שניות';
-}
-
-// dropIndex: 0..placedEvents.length  or null for timeout
 function placeCard(dropIndex){
-  clearInterval(timerInterval);
   const ev = gameEvents[currentIdx];
 
-  let isCorrect = false;
-  if(dropIndex !== null){
-    const beforeOk = dropIndex===0 || placedEvents[dropIndex-1].sortKey <= ev.sortKey;
-    const afterOk  = dropIndex>=placedEvents.length || placedEvents[dropIndex].sortKey >= ev.sortKey;
-    isCorrect = beforeOk && afterOk;
+  const beforeOk = dropIndex===0 || placedEvents[dropIndex-1].sortKey <= ev.sortKey;
+  const afterOk  = dropIndex>=placedEvents.length || placedEvents[dropIndex].sortKey >= ev.sortKey;
+  const isCorrect = beforeOk && afterOk;
+
+  if(isCorrect){
+    let pos = placedEvents.findIndex(e=>e.sortKey > ev.sortKey);
+    if(pos===-1) pos = placedEvents.length;
+    placedEvents.splice(pos, 0, {...ev, isCorrect:true});
+    currentIdx++;
+    showCurrentCard();
+  } else {
+    // פסילה
+    strikes++;
+    updateHUD();
+    const card = document.getElementById('currentCard');
+    card.classList.remove('shake');
+    void card.offsetWidth; // reflow לאנימציה
+    card.classList.add('shake');
+    const flash = document.createElement('div');
+    flash.className='strike-flash';
+    card.appendChild(flash);
+    setTimeout(()=>flash.remove(), 500);
+
+    if(strikes >= MAX_STRIKES){
+      // 3 פסילות - הפסד
+      let pos = placedEvents.findIndex(e=>e.sortKey > ev.sortKey);
+      if(pos===-1) pos = placedEvents.length;
+      placedEvents.splice(pos, 0, {...ev, isCorrect:false});
+      currentIdx++;
+      renderTimeline();
+      setTimeout(()=>endGame(false), 600);
+    }
   }
-
-  if(isCorrect) correctCount++;
-
-  // Insert in chronological position (for display)
-  let pos = placedEvents.findIndex(e=>e.sortKey > ev.sortKey);
-  if(pos===-1) pos = placedEvents.length;
-  placedEvents.splice(pos, 0, {...ev, isCorrect});
-
-  currentIdx++;
-  updateScorePill();
-  renderTimeline();
-  showCurrentCard();
 }
 
-function updateScorePill(){
-  document.getElementById('scorePill').textContent = correctCount+'/'+currentIdx;
-}
-
-function endGame(){
-  clearInterval(timerInterval);
+function endGame(won){
+  clearInterval(stopwatchInterval);
   document.getElementById('currentCard').classList.add('hidden');
-  renderTimeline(); // show final timeline without drop zones
-  document.getElementById('finalScore').textContent = correctCount+'/7';
-  const msgs=['כדאי לחזור על החומר ולנסות שוב.','לא רע! כדאי לחזור ולנסות שוב.','לא רע. נסה שוב לשפר את הציון!','כל הכבוד! תוצאה מצוינת.','מצוין! כמעט מושלם.','מעולה! שלטת בציר הזמן!','מושלם! שלטת בציר הזמן לגמרי!'];
-  document.getElementById('scoreMsg').textContent = msgs[Math.min(correctCount,6)];
+  renderTimeline();
+
+  const m = String(Math.floor(stopwatchSec/60)).padStart(2,'0');
+  const s = String(stopwatchSec%60).padStart(2,'0');
+
+  if(won){
+    document.getElementById('endTitle').textContent   = 'כל הכבוד!';
+    document.getElementById('endSub').textContent     = 'סידרת את כל האירועים בזמן:';
+    document.getElementById('finalScore').textContent = m+':'+s;
+    document.getElementById('scoreMsg').textContent   = strikes===0 ? 'מושלם! ללא אף פסילה!' : `עם ${strikes} פסיל${strikes===1?'ה':'ות'} בלבד.`;
+  } else {
+    document.getElementById('endTitle').textContent   = 'נגמרו הסיבובים!';
+    document.getElementById('endSub').textContent     = '3 פסילות – המשחק הסתיים.';
+    document.getElementById('finalScore').textContent = m+':'+s;
+    document.getElementById('scoreMsg').textContent   = 'כדאי לחזור על החומר ולנסות שוב.';
+  }
   document.getElementById('endModal').classList.remove('hidden');
 }
 
