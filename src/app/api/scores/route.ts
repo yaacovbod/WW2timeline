@@ -48,6 +48,27 @@ export async function GET() {
   })
 }
 
+export async function DELETE(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const secret = searchParams.get('secret')
+  const index = Number(searchParams.get('index'))
+
+  if (secret !== process.env.ADMIN_SECRET) {
+    return NextResponse.json({ error: 'אין הרשאה' }, { status: 401 })
+  }
+  if (isNaN(index) || index < 0) {
+    return NextResponse.json({ error: 'אינדקס לא תקין' }, { status: 400 })
+  }
+
+  const scores = await readScores()
+  if (index >= scores.length) {
+    return NextResponse.json({ error: 'אינדקס מחוץ לטווח' }, { status: 404 })
+  }
+  scores.splice(index, 1)
+  await writeScores(scores)
+  return NextResponse.json({ ok: true, remaining: scores.length })
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json() as ScoreEntry
