@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --bg:         #08081a;
+  --surface1:   #10102e;
+  --surface2:   #18183c;
+  --surface3:   #22224e;
+  --accent:     #6b4fdb;
+  --accent2:    #00bfff;
+  --gold:       #e8b84b;
+  --text:       #e8e8ff;
+  --text-muted: #8888cc;
+  --border:     #2e2b6a;
+  --ok:         #00e676;
+  --bad:        #ff5252;
+  --font-heading: var(--font-cinzel);
+  --font-body:    var(--font-heebo);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body), sans-serif;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(107,79,219,.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(0,191,255,.12) 0%, transparent 55%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  direction: rtl;
+  user-select: none;
+}
+
+@keyframes floatUp {
+  0%   { transform: translateY(0) rotate(0deg);    opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { transform: translateY(-110vh) rotate(8deg); opacity: 0; }
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-8px); }
+  40%     { transform: translateX(8px); }
+  60%     { transform: translateX(-5px); }
+  80%     { transform: translateX(5px); }
+}
+
+@keyframes fadeFlash {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes pulse-hint {
+  0%,100% { opacity: .5; }
+  50%     { opacity: 1; }
+}
