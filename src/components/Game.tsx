@@ -246,6 +246,7 @@ export default function Game() {
   const [muted, setMuted]               = useState(false)
 
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [showTerms, setShowTerms]             = useState(false)
   const [showSubmit, setShowSubmit]           = useState(false)
   const [playerName, setPlayerName]           = useState('')
   const [selectedSchool, setSelectedSchool]   = useState('')
@@ -514,6 +515,12 @@ export default function Game() {
                 לוח תוצאות
               </button>
             </div>
+            <p style={{ marginTop: 16, fontSize: '.75rem', color: 'var(--text-muted)', lineHeight: 1.6, padding: '0 4px' }}>
+              השימוש באתר כפוף ל
+              <button onClick={() => setShowTerms(true)} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--gold)', cursor: 'pointer', fontSize: '.75rem', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                תנאי השימוש
+              </button>
+            </p>
           </div>
         </div>
       )}
@@ -641,6 +648,44 @@ export default function Game() {
 
       {/* Leaderboard overlay */}
       {showLeaderboard && <LeaderboardOverlay onClose={() => setShowLeaderboard(false)} />}
+
+      {/* Terms of Service overlay */}
+      {showTerms && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,10,.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 20 }}>
+          <div style={{ background: 'var(--surface1)', border: '1px solid var(--border)', borderRadius: 18, padding: '28px 24px', maxWidth: 480, width: '100%', textAlign: 'right', direction: 'rtl', boxShadow: '0 20px 60px rgba(0,0,0,.7)', maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <h2 style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.2rem', color: 'var(--gold)', margin: 0 }}>תנאי שימוש</h2>
+              <button onClick={() => setShowTerms(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '1.4rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+            </div>
+            <ol style={{ padding: '0 18px', margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <li style={{ fontSize: '.88rem', lineHeight: 1.7, color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--text)' }}>מטרת האתר:</strong> האתר נועד למטרות לימודיות בלבד. התכנים עוסקים בשואה ובמלחמת העולם השנייה ומיועדים לשימוש חינוכי.
+              </li>
+              <li style={{ fontSize: '.88rem', lineHeight: 1.7, color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--text)' }}>לוח תוצאות:</strong> הזנת שם בלוח התוצאות היא פעולה מרצון חופשי בלבד. אין חובה להזין שם אמיתי.
+              </li>
+              <li style={{ fontSize: '.88rem', lineHeight: 1.7, color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--text)' }}>תוכן פוגעני:</strong> מפעיל האתר שומר לעצמו את הזכות למחוק כל שם או תוכן שנמצא פוגעני, לא ראוי, מגונה, גזעני, או בעל אופי שאינו הולם מוסד חינוכי, וזאת ללא הודעה מוקדמת.
+              </li>
+              <li style={{ fontSize: '.88rem', lineHeight: 1.7, color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--text)' }}>אחריות:</strong> האתר מסופק כפי שהוא. מפעיל האתר אינו אחראי לשגיאות בתוכן, להפסקות שירות, או לכל נזק ישיר או עקיף כתוצאה מהשימוש באתר.
+              </li>
+              <li style={{ fontSize: '.88rem', lineHeight: 1.7, color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--text)' }}>פרטיות:</strong> האתר אינו אוסף מידע אישי מעבר לשם שהמשתמש בחר להזין מרצונו ללוח התוצאות. לא נשמרים כתובות IP, עוגיות, או נתוני זיהוי אחרים.
+              </li>
+              <li style={{ fontSize: '.88rem', lineHeight: 1.7, color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--text)' }}>קניין רוחני:</strong> כל הזכויות על תוכן האתר, עיצובו, וקוד המקור שמורות למפעיל האתר. אין לשכפל, להפיץ, או לעשות שימוש מסחרי ללא אישור מפורש.
+              </li>
+              <li style={{ fontSize: '.88rem', lineHeight: 1.7, color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--text)' }}>הסכמה:</strong> כניסה לאתר ושימוש בו מהווים הסכמה מלאה לתנאים אלה.
+              </li>
+            </ol>
+            <button onClick={() => setShowTerms(false)} style={{ marginTop: 22, width: '100%', background: 'linear-gradient(135deg,var(--accent),#4a2fb0)', color: '#fff', border: 'none', padding: '11px 0', borderRadius: 30, fontSize: '.95rem', fontWeight: 700, cursor: 'pointer' }}>
+              הבנתי
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <header style={{ background: 'rgba(8,8,26,.92)', backdropFilter: 'blur(8px)', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 50 }}>
