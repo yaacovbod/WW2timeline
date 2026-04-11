@@ -36,6 +36,7 @@ async function writeScores(scores: ScoreEntry[]) {
   await put(BLOB_KEY, JSON.stringify(scores), {
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
     contentType: 'application/json',
   })
 }
