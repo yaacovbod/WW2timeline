@@ -661,9 +661,9 @@ export default function Game() {
           <h1 style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.3rem', fontWeight: 800, background: 'linear-gradient(90deg,var(--text),var(--gold))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', textAlign: 'center' }}>אירוע בזמן</h1>
           <p style={{ fontSize: '.68rem', color: 'var(--text-muted)', marginTop: 2, letterSpacing: '.5px', textAlign: 'center' }}>השואה ומלחמת העולם השנייה</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, contain: 'layout' as const }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ fontSize: '1.2rem', letterSpacing: 2, minWidth: 60, textAlign: 'center' }}>{hearts}</div>
-          <div ref={timerDisplayRef} style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', width: 80, textAlign: 'center', fontVariantNumeric: 'tabular-nums', contain: 'strict' as const }}>00:00.00</div>
+          <div ref={timerDisplayRef} style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', width: 80, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>00:00.00</div>
         </div>
       </header>
 
