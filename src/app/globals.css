@@ -14,7 +14,7 @@
   --ok:         #00e676;
   --bad:        #ff5252;
   --font-heading: var(--font-cinzel);
-  --font-body:    var(--font-raleway);
+  --font-body:    var(--font-heebo);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

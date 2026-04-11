@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { Cinzel, Raleway } from 'next/font/google'
+import { Cinzel, Heebo } from 'next/font/google'
 import './globals.css'
 
 const cinzel = Cinzel({ subsets: ['latin'], weight: ['600', '800', '900'], variable: '--font-cinzel' })
-const raleway = Raleway({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--font-raleway' })
+const heebo = Heebo({ subsets: ['hebrew', 'latin'], weight: ['400', '600', '700'], variable: '--font-heebo' })
 
 export const metadata: Metadata = {
   title: 'אירוע בזמן – השואה ומלחמת העולם השנייה',
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           gtag('config','G-7PL4MS7Y3Z');
         `}} />
       </head>
-      <body className={`${cinzel.variable} ${raleway.variable}`}>
+      <body className={`${cinzel.variable} ${heebo.variable}`}>
         {children}
       </body>
     </html>
