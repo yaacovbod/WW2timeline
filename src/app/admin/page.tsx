@@ -37,8 +37,7 @@ export default function AdminPage() {
     setLoading(true)
     const res = await fetch(`/api/scores?secret=${secret}&index=${index}`, { method: 'DELETE' })
     if (!res.ok) { setError('שגיאה במחיקה'); setLoading(false); return }
-    const fresh = await fetchScores(secret!)
-    if (fresh) setScores(fresh)
+    setScores(prev => prev.filter((_, idx) => idx !== index))
     setLoading(false)
   }
 
