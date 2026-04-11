@@ -51,6 +51,8 @@ export async function POST(req: Request) {
   const trimmed = scores.slice(0, TOP_N)
   writeScores(trimmed)
 
-  const rank = trimmed.findIndex(s => s === entry) + 1
+  const rank = trimmed.findIndex(
+    s => s.name === entry.name && s.school === entry.school && s.timeMs === entry.timeMs && s.date === entry.date
+  ) + 1
   return NextResponse.json({ rank, leaderboard: trimmed })
 }

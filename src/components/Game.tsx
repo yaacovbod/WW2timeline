@@ -205,6 +205,7 @@ export default function Game() {
   const [selectedSchool, setSelectedSchool]   = useState('')
   const [submitting, setSubmitting]           = useState(false)
   const [submittedRank, setSubmittedRank]     = useState<number | null>(null)
+  const [submitError, setSubmitError]         = useState('')
 
   const audioRef     = useRef<HTMLAudioElement | null>(null)
   const timerRef     = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -241,6 +242,7 @@ export default function Game() {
     setPlayerName('')
     setSelectedSchool('')
     setSubmittedRank(null)
+    setSubmitError('')
     setPhase('playing')
   }
 
@@ -391,6 +393,7 @@ export default function Game() {
   async function submitScore() {
     if (!playerName.trim() || !selectedSchool) return
     setSubmitting(true)
+    setSubmitError('')
     try {
       const res = await fetch('/api/scores', {
         method: 'POST',
@@ -402,11 +405,13 @@ export default function Game() {
           strikes,
         }),
       })
+      if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`)
       const data = await res.json()
       setSubmittedRank(data.rank ?? null)
       setShowSubmit(false)
-    } catch {
-      // ignore
+      setPhase('intro')
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'שגיאה בשמירה, נסה שוב')
     }
     setSubmitting(false)
   }
@@ -542,6 +547,11 @@ export default function Game() {
                 >
                   {submitting ? 'שומר...' : 'שמור תוצאה'}
                 </button>
+                {submitError && (
+                  <p style={{ color: '#e06b6b', fontSize: '.82rem', marginTop: 8, textAlign: 'center' }}>
+                    {submitError}
+                  </p>
+                )}
               </div>
             )}
 
