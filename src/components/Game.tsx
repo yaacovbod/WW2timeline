@@ -405,7 +405,10 @@ export default function Game() {
           strikes,
         }),
       })
-      if (!res.ok) throw new Error(`שגיאת שרת ${res.status}`)
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        throw new Error(errBody.error ?? `שגיאת שרת ${res.status}`)
+      }
       const data = await res.json()
       setSubmittedRank(data.rank ?? null)
       setShowSubmit(false)

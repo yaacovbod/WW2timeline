@@ -23,7 +23,12 @@ function readScores(): ScoreEntry[] {
 }
 
 function writeScores(scores: ScoreEntry[]) {
-  fs.writeFileSync(SCORES_FILE, JSON.stringify(scores, null, 2), 'utf-8')
+  try {
+    fs.writeFileSync(SCORES_FILE, JSON.stringify(scores, null, 2), 'utf-8')
+  } catch (e) {
+    console.error('[scores] write failed:', SCORES_FILE, e)
+    throw e
+  }
 }
 
 export async function GET() {
@@ -32,27 +37,33 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json() as ScoreEntry
-  if (!body.name || !body.school || typeof body.timeMs !== 'number') {
-    return NextResponse.json({ error: 'נתונים חסרים' }, { status: 400 })
+  try {
+    const body = await req.json() as ScoreEntry
+    if (!body.name || !body.school || typeof body.timeMs !== 'number') {
+      return NextResponse.json({ error: 'נתונים חסרים' }, { status: 400 })
+    }
+
+    const entry: ScoreEntry = {
+      name: String(body.name).slice(0, 40),
+      school: String(body.school).slice(0, 80),
+      timeMs: body.timeMs,
+      strikes: body.strikes ?? 0,
+      date: new Date().toISOString().slice(0, 10),
+    }
+
+    const scores = readScores()
+    scores.push(entry)
+    scores.sort((a, b) => a.timeMs - b.timeMs || a.strikes - b.strikes)
+    const trimmed = scores.slice(0, TOP_N)
+    writeScores(trimmed)
+
+    const rank = trimmed.findIndex(
+      s => s.name === entry.name && s.school === entry.school && s.timeMs === entry.timeMs && s.date === entry.date
+    ) + 1
+    return NextResponse.json({ rank, leaderboard: trimmed })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.error('[scores POST]', msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
-
-  const entry: ScoreEntry = {
-    name: String(body.name).slice(0, 40),
-    school: String(body.school).slice(0, 80),
-    timeMs: body.timeMs,
-    strikes: body.strikes ?? 0,
-    date: new Date().toISOString().slice(0, 10),
-  }
-
-  const scores = readScores()
-  scores.push(entry)
-  scores.sort((a, b) => a.timeMs - b.timeMs || a.strikes - b.strikes)
-  const trimmed = scores.slice(0, TOP_N)
-  writeScores(trimmed)
-
-  const rank = trimmed.findIndex(
-    s => s.name === entry.name && s.school === entry.school && s.timeMs === entry.timeMs && s.date === entry.date
-  ) + 1
-  return NextResponse.json({ rank, leaderboard: trimmed })
 }
