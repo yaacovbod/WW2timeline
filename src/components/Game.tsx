@@ -106,9 +106,46 @@ function SchoolSearch({ onSelect }: { onSelect: (school: string) => void }) {
   )
 }
 
+function ScoreTable({ rows, showSchool = true }: { rows: ScoreEntry[]; showSchool?: boolean }) {
+  if (rows.length === 0) return (
+    <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>עדיין אין ניקודים</p>
+  )
+  return (
+    <table style={{ width: '100%', borderCollapse: 'collapse', direction: 'rtl' }}>
+      <thead>
+        <tr style={{ borderBottom: '1px solid var(--border)' }}>
+          {(['#', 'שם', ...(showSchool ? ['בית ספר'] : []), 'זמן', '❤']).map(h => (
+            <th key={h} style={{
+              padding: '6px 8px', fontSize: '.78rem',
+              color: 'var(--text-muted)', textAlign: 'right', fontWeight: 600,
+            }}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,.05)' }}>
+            <td style={{ padding: '7px 8px', fontSize: '.82rem', color: i < 3 ? 'var(--gold)' : 'var(--text-muted)', fontWeight: i < 3 ? 700 : 400, whiteSpace: 'nowrap' }}>
+              {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+            </td>
+            <td style={{ padding: '7px 8px', fontSize: '.88rem', fontWeight: 600 }}>{r.name}</td>
+            {showSchool && <td style={{ padding: '7px 8px', fontSize: '.82rem', color: 'var(--text-muted)' }}>{r.school}</td>}
+            <td style={{ padding: '7px 8px', fontSize: '.88rem', color: 'var(--accent2)', whiteSpace: 'nowrap', fontFamily: 'var(--font-cinzel)' }}>{formatTime(r.timeMs)}</td>
+            <td style={{ padding: '7px 8px', fontSize: '.82rem', color: '#e06b6b', whiteSpace: 'nowrap' }}>
+              {'♥'.repeat(MAX_STRIKES - r.strikes)}{'♡'.repeat(r.strikes)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
 function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
   const [rows, setRows] = useState<ScoreEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<'global' | 'school'>('global')
+  const [schoolQuery, setSchoolQuery] = useState('')
 
   useEffect(() => {
     fetch('/api/scores', { cache: 'no-store' })
@@ -116,6 +153,17 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
       .then(data => { setRows(data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
+
+  const schoolRows = schoolQuery.trim().length >= 1
+    ? rows.filter(r => r.school.includes(schoolQuery.trim()))
+    : []
+
+  const tabStyle = (active: boolean): React.CSSProperties => ({
+    flex: 1, padding: '8px 0', borderRadius: 8, fontSize: '.88rem', fontWeight: 600,
+    cursor: 'pointer', border: 'none', transition: 'all .15s',
+    background: active ? 'var(--accent)' : 'transparent',
+    color: active ? '#fff' : 'var(--text-muted)',
+  })
 
   return (
     <div style={{
@@ -128,7 +176,7 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
         borderRadius: 18, padding: '28px 20px', maxWidth: 560, width: '100%',
         boxShadow: '0 20px 60px rgba(0,0,0,.7)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <button
             onClick={onClose}
             style={{
@@ -137,49 +185,62 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
               cursor: 'pointer', fontSize: '.85rem',
             }}
           >סגור</button>
-          <h2 style={{
-            fontFamily: 'var(--font-cinzel)', fontSize: '1.3rem',
-            color: 'var(--gold)', margin: 0,
-          }}>לוח תוצאות</h2>
+          <h2 style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.3rem', color: 'var(--gold)', margin: 0 }}>
+            לוח תוצאות
+          </h2>
+        </div>
+
+        {/* Tabs */}
+        <div style={{
+          display: 'flex', gap: 6, marginBottom: 18,
+          background: 'var(--surface2)', borderRadius: 10, padding: 4,
+          direction: 'rtl',
+        }}>
+          <button style={tabStyle(tab === 'global')} onClick={() => setTab('global')}>כללי</button>
+          <button style={tabStyle(tab === 'school')} onClick={() => setTab('school')}>לפי בית ספר</button>
         </div>
 
         {loading && (
           <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>טוען...</p>
         )}
-        {!loading && rows.length === 0 && (
-          <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>עדיין אין ניקודים</p>
+
+        {!loading && tab === 'global' && (
+          <ScoreTable rows={rows} />
         )}
-        {!loading && rows.length > 0 && (
-          <table style={{ width: '100%', borderCollapse: 'collapse', direction: 'rtl' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['#', 'שם', 'בית ספר', 'זמן', '❤'].map(h => (
-                  <th key={h} style={{
-                    padding: '6px 8px', fontSize: '.78rem',
-                    color: 'var(--text-muted)', textAlign: 'right', fontWeight: 600,
-                  }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr
-                  key={i}
-                  style={{ borderBottom: '1px solid rgba(255,255,255,.05)' }}
-                >
-                  <td style={{ padding: '7px 8px', fontSize: '.82rem', color: i < 3 ? 'var(--gold)' : 'var(--text-muted)', fontWeight: i < 3 ? 700 : 400, whiteSpace: 'nowrap' }}>
-                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
-                  </td>
-                  <td style={{ padding: '7px 8px', fontSize: '.88rem', fontWeight: 600 }}>{r.name}</td>
-                  <td style={{ padding: '7px 8px', fontSize: '.82rem', color: 'var(--text-muted)' }}>{r.school}</td>
-                  <td style={{ padding: '7px 8px', fontSize: '.88rem', color: 'var(--accent2)', whiteSpace: 'nowrap', fontFamily: 'var(--font-cinzel)' }}>{formatTime(r.timeMs)}</td>
-                  <td style={{ padding: '7px 8px', fontSize: '.82rem', color: '#e06b6b', whiteSpace: 'nowrap' }}>
-                    {'♥'.repeat(MAX_STRIKES - r.strikes)}{'♡'.repeat(r.strikes)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        {!loading && tab === 'school' && (
+          <>
+            <input
+              type="text"
+              placeholder="הקלד שם בית ספר לחיפוש..."
+              value={schoolQuery}
+              onChange={e => setSchoolQuery(e.target.value)}
+              style={{
+                width: '100%', boxSizing: 'border-box', marginBottom: 14,
+                background: 'var(--surface3)', border: '1px solid var(--border)',
+                color: 'var(--text)', borderRadius: 8, padding: '9px 12px',
+                fontSize: '.9rem', textAlign: 'right', direction: 'rtl', outline: 'none',
+              }}
+            />
+            {schoolQuery.trim().length < 1 && (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '.85rem', padding: '10px 0' }}>
+                הקלד שם בית ספר כדי לראות את הדירוג שלו
+              </p>
+            )}
+            {schoolQuery.trim().length >= 1 && schoolRows.length === 0 && (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '.85rem', padding: '10px 0' }}>
+                לא נמצאו תוצאות עבור &quot;{schoolQuery}&quot;
+              </p>
+            )}
+            {schoolRows.length > 0 && (
+              <>
+                <p style={{ textAlign: 'right', color: 'var(--text-muted)', fontSize: '.8rem', marginBottom: 8, direction: 'rtl' }}>
+                  מציג {schoolRows.length} תוצאות עבור &quot;{schoolQuery}&quot;
+                </p>
+                <ScoreTable rows={schoolRows} showSchool={false} />
+              </>
+            )}
+          </>
         )}
       </div>
     </div>
