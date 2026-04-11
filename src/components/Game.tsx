@@ -273,6 +273,13 @@ export default function Game() {
   idxRef.current     = currentIdx
   gameEvRef.current  = gameEvents
 
+  // scroll to top after each placement so the next card is visible
+  useEffect(() => {
+    if (phase !== 'playing') return
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentIdx, phase])
+
+  // stopwatch
   useEffect(() => {
     if (phase !== 'playing') return
     stopwatchMsRef.current = 0
