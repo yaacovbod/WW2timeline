@@ -290,7 +290,7 @@ export default function Game() {
     setPlacedEvents([seed])
     setCurrentIdx(0)
     setStrikes(0)
-    setStopwatchMs(0)
+    stopwatchMsRef.current = 0
     setWon(false)
     setShowSubmit(false)
     setPlayerName('')
