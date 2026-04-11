@@ -239,7 +239,6 @@ export default function Game() {
   const [placedEvents, setPlacedEvents] = useState<GameEvent[]>([])
   const [currentIdx, setCurrentIdx]     = useState(0)
   const [strikes, setStrikes]           = useState(0)
-  const [stopwatchMs, setStopwatchMs]   = useState(0)
   const [won, setWon]                   = useState(false)
   const [shaking, setShaking]           = useState(false)
   const [flashRed, setFlashRed]         = useState(false)
@@ -253,6 +252,10 @@ export default function Game() {
   const [submitting, setSubmitting]           = useState(false)
   const [submittedRank, setSubmittedRank]     = useState<number | null>(null)
   const [submitError, setSubmitError]         = useState('')
+
+  const stopwatchMsRef  = useRef(0)
+  const [finalTimeMs, setFinalTimeMs] = useState(0)
+  const timerDisplayRef = useRef<HTMLDivElement | null>(null)
 
   const audioRef     = useRef<HTMLAudioElement | null>(null)
   const timerRef     = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -271,7 +274,11 @@ export default function Game() {
 
   useEffect(() => {
     if (phase !== 'playing') return
-    timerRef.current = setInterval(() => setStopwatchMs(ms => ms + 10), 10)
+    stopwatchMsRef.current = 0
+    timerRef.current = setInterval(() => {
+      stopwatchMsRef.current += 10
+      if (timerDisplayRef.current) timerDisplayRef.current.textContent = formatTime(stopwatchMsRef.current)
+    }, 10)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [phase])
 
@@ -295,6 +302,7 @@ export default function Game() {
 
   const finishGame = useCallback((didWin: boolean) => {
     if (timerRef.current) clearInterval(timerRef.current)
+    setFinalTimeMs(stopwatchMsRef.current)
     setWon(didWin)
     setPhase('end')
   }, [])
@@ -448,7 +456,7 @@ export default function Game() {
         body: JSON.stringify({
           name: playerName.trim(),
           school: selectedSchool,
-          timeMs: stopwatchMs,
+          timeMs: stopwatchMsRef.current,
           strikes,
         }),
       })
@@ -521,7 +529,7 @@ export default function Game() {
               {won ? 'סידרת את כל האירועים בזמן:' : '3 פסילות – המשחק הסתיים.'}
             </p>
             <div style={{ fontFamily: 'var(--font-cinzel)', fontSize: '2.8rem', fontWeight: 800, color: 'var(--gold)', margin: '10px 0' }}>
-              {formatTime(stopwatchMs)}
+              {formatTime(finalTimeMs)}
             </div>
             <p style={{ color: 'var(--text-muted)', marginBottom: 14, fontSize: '.92rem' }}>
               {won
@@ -655,7 +663,7 @@ export default function Game() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ fontSize: '1.2rem', letterSpacing: 2 }}>{hearts}</div>
-          <div style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', minWidth: 70, textAlign: 'center' }}>{formatTime(stopwatchMs)}</div>
+          <div ref={timerDisplayRef} style={{ fontFamily: 'var(--font-cinzel)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', minWidth: 70, textAlign: 'center' }}>00:00.0</div>
         </div>
       </header>
 
