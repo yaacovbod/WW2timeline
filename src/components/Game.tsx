@@ -145,7 +145,7 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
   const [rows, setRows] = useState<ScoreEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'global' | 'school'>('global')
-  const [schoolQuery, setSchoolQuery] = useState('')
+  const [selectedFilterSchool, setSelectedFilterSchool] = useState('')
 
   useEffect(() => {
     fetch('/api/scores', { cache: 'no-store' })
@@ -154,8 +154,8 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
       .catch(() => setLoading(false))
   }, [])
 
-  const schoolRows = schoolQuery.trim().length >= 1
-    ? rows.filter(r => r.school.includes(schoolQuery.trim()))
+  const schoolRows = selectedFilterSchool
+    ? rows.filter(r => r.school === selectedFilterSchool)
     : []
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -210,35 +210,21 @@ function LeaderboardOverlay({ onClose }: { onClose: () => void }) {
 
         {!loading && tab === 'school' && (
           <>
-            <input
-              type="text"
-              placeholder="הקלד שם בית ספר לחיפוש..."
-              value={schoolQuery}
-              onChange={e => setSchoolQuery(e.target.value)}
-              style={{
-                width: '100%', boxSizing: 'border-box', marginBottom: 14,
-                background: 'var(--surface3)', border: '1px solid var(--border)',
-                color: 'var(--text)', borderRadius: 8, padding: '9px 12px',
-                fontSize: '.9rem', textAlign: 'right', direction: 'rtl', outline: 'none',
-              }}
-            />
-            {schoolQuery.trim().length < 1 && (
+            <div style={{ marginBottom: 14 }}>
+              <SchoolSearch onSelect={setSelectedFilterSchool} />
+            </div>
+            {!selectedFilterSchool && (
               <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '.85rem', padding: '10px 0' }}>
-                הקלד שם בית ספר כדי לראות את הדירוג שלו
+                בחר בית ספר כדי לראות את הדירוג שלו
               </p>
             )}
-            {schoolQuery.trim().length >= 1 && schoolRows.length === 0 && (
+            {selectedFilterSchool && schoolRows.length === 0 && (
               <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '.85rem', padding: '10px 0' }}>
                 אין נתונים לבית ספר הנבחר
               </p>
             )}
-            {schoolRows.length > 0 && (
-              <>
-                <p style={{ textAlign: 'right', color: 'var(--text-muted)', fontSize: '.8rem', marginBottom: 8, direction: 'rtl' }}>
-                  מציג {schoolRows.length} תוצאות עבור &quot;{schoolQuery}&quot;
-                </p>
-                <ScoreTable rows={schoolRows} showSchool={true} />
-              </>
+            {selectedFilterSchool && schoolRows.length > 0 && (
+              <ScoreTable rows={schoolRows} showSchool={false} />
             )}
           </>
         )}
